@@ -15,6 +15,6 @@ def test_rbf_approx(input_shape: tuple[int, ...]):
     y = rff_gp.featurize(x).squeeze(-1)
 
     expected = torch.exp(-torch.cdist(x, x) ** 2 / 2)
-    actual = y @ y.transpose(-1, -2)
+    actual = y @ y.mT
 
     torch.testing.assert_allclose(actual, expected, atol=5e-2, rtol=1e-2)

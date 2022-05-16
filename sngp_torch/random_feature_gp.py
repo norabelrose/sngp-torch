@@ -94,14 +94,16 @@ class RandomFeatureGP(nn.Module):
         # Compute the posterior mean
         phi = self.featurize(hiddens)
         mean = self.linear(phi).squeeze(-1)  # Remove trailing 1-dim to prevent broadcasting
-        prod = self.covariance_matrix @ phi.transpose(-1, -2)
 
+        # Add jitter to diagonal to ensure positive-definiteness
+        # Technique and 1e-3 value taken from GPyTorch
+        cov = phi @ self.covariance_matrix @ phi.mT + torch.eye(len(phi)) * 1e-3
+    
         if diag_only:
             # We know the args are valid and we don't want the performance hit of checking
-            return Normal(mean, prod.square().sum(0), validate_args=False)
+            return Normal(mean, torch.linalg.cholesky(cov).diag(), validate_args=False)
         else:
-            # print(f"{torch.linalg.eigh(self.covariance_matrix)}")
-            return MultivariateNormal(mean, phi @ prod, validate_args=False)
+            return MultivariateNormal(mean, cov, validate_args=False)
     
     @contextmanager
     def record_covariance(self) -> Generator['RandomFeatureGP', None, None]:

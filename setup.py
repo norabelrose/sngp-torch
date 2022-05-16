@@ -8,7 +8,7 @@ setup(
     install_requires=[
         "torch",
     ],
-    python_requires=">=3.10",
+    python_requires=">=3.9",
     extras_require={
         'test': ['pytest', 'sklearn'],
     }

@@ -3,7 +3,7 @@ from contextlib import contextmanager
 from functools import partial
 from torch.distributions import MultivariateNormal, Normal
 from torch import nn, Tensor
-from typing import Callable, Generator, Literal
+from typing import Callable, Generator, Literal, Optional, Union
 import torch
 import warnings
 
@@ -22,11 +22,11 @@ class RandomFeatureGP(nn.Module):
             self,
             in_features: int,
             out_features: int,
-            loss_fn: Callable[[Tensor, Tensor], Tensor] | FastHessianLoss,
+            loss_fn: Union[Callable[[Tensor, Tensor], Tensor], FastHessianLoss],
             *,
             cov_momentum: float = 1.0,
             cov_ridge_penalty: float = 1.0,
-            device: torch.device | None = None,
+            device: Union[torch.device, None] = None,
             kernel_amplitude: float = 1.0,
             layer_norm: bool = True,
             num_rff: int = 1024,
@@ -64,9 +64,9 @@ class RandomFeatureGP(nn.Module):
         rff_bias_init(self.rff_bias)
     
     # Make Pylance type checking happy
-    covariance_matrix: Tensor | None
+    covariance_matrix: Optional[Tensor]
     num_samples: Tensor
-    precision_matrix: Tensor | None
+    precision_matrix: Optional[Tensor]
     rff_weight: Tensor
     rff_bias: Tensor
 
@@ -87,7 +87,7 @@ class RandomFeatureGP(nn.Module):
         
         return outputs
     
-    def posterior(self, hiddens: Tensor, diag_only: bool = False) -> MultivariateNormal | Normal:
+    def posterior(self, hiddens: Tensor, diag_only: bool = False) -> Union[MultivariateNormal, Normal]:
         """Compute Laplace approximation to the GP posterior."""
         assert self.covariance_matrix is not None, "Covariance matrix not computed yet."
 

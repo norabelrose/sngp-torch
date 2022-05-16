@@ -1,2 +1,5 @@
 # sngp-torch
-Simple library implementing Spectral-normalized Neural Gaussian Processes in PyTorch
+This is a simple library implementing Spectral-normalized Neural Gaussian Processes (SNGP) from the paper ["A Simple Approach to Improve Single-Model Deep Uncertainty via Distance-Awareness"](https://arxiv.org/abs/2205.00403) (Liu et al. 2022) in PyTorch. SNGP is a technique for enhancing the uncertainty estimation capabilities of deep neural networks, especially on out-of-distribution inputs, with negligible computational overhead and without sacrificing accuracy. It consists of two parts:
+
+1. Applying spectral normalization to the linear and convolutional layers of the network. This enforces an upper bound on the Lipschitz constant of the network, ensuring that inputs which are close in the data manifold are not too far apart in the latent space of the penulimate layer of the network. Spectral normalization is already implemented in base PyTorch as `torch.nn.utils.parameterization.spectral_norm`.
+2. Replacing the final layer of the network with an approximate Gaussian Process based on Random Fourier Features.

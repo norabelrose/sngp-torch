@@ -1,4 +1,5 @@
 from .hessians import FAST_HESSIANS
+from .orf import orf_init
 from contextlib import contextmanager
 from functools import partial
 from torch.distributions import MultivariateNormal, Normal
@@ -16,7 +17,7 @@ FastHessianLoss = Literal['bce', 'ce', 'mse']
 class RandomFeatureGP(nn.Module):
     """
     Drop-in replacement for the final `nn.Linear` layer in a network that uses a random
-    Fourier feature-based approximation to a Gaussian process for uncertainty estimation.
+    feature-based approximation to a Gaussian process for uncertainty estimation.
     """
     def __init__(
             self,
@@ -32,7 +33,7 @@ class RandomFeatureGP(nn.Module):
             num_rff: int = 1024,
             rff_activation: Callable[[Tensor], Tensor] = torch.cos,
             rff_bias_init: Callable[[Tensor], Tensor] = partial(nn.init.uniform_, b=2 * torch.pi),
-            rff_weight_init: Callable[[Tensor], Tensor] = nn.init.normal_,
+            rff_weight_init: Callable[[Tensor], Tensor] = orf_init,
             weight_decay: float = 0.0,
         ):
         super().__init__()

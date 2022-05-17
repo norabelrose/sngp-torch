@@ -11,8 +11,8 @@ def test_rbf_approx(input_shape: tuple[int, ...], kernel_init):
     torch.manual_seed(0)
 
     rff_gp = RandomFeatureGP(
-        input_shape[-1], 1, 'mse', num_rff=8192,
-        rff_weight_init=kernel_init
+        input_shape[-1], 1, 'mse', num_features=8192,
+        feature_weight_init=kernel_init
     )
     x = torch.randn(input_shape)
     y = rff_gp.featurize(x).squeeze(-1)

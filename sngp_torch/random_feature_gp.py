@@ -26,17 +26,16 @@ class RandomFeatureGP(nn.Module):
             cov_momentum: float = 1.0,
             cov_ridge_penalty: float = 1.0,
             device: Union[torch.device, None] = None,
-            kernel_amplitude: float = 1.0,
-            layer_norm: bool = True,
-            num_features: int = 1024,
             feature_activation: Callable[[Tensor], Tensor] = torch.cos,
             feature_bias_init: Callable[[Tensor], Tensor] = partial(nn.init.uniform_, b=2 * torch.pi),
             feature_weight_init: Callable[[Tensor], Tensor] = orf_init,
+            kernel_amplitude: float = 1.0,
+            layer_norm: bool = True,
+            num_features: int = 1024,
             weight_decay: float = 0.0,
         ):
         super().__init__()
-        assert callable(loss_fn) or loss_fn in FAST_HESSIANS,\
-            "`loss_fn` must be a callable or one of ('bce', 'ce', 'mse')."
+        assert loss_fn is None or loss_fn in FAST_HESSIANS, "`loss_fn` must be one of ('bce', 'ce', 'mse')."
 
         self.cov_momentum = cov_momentum
         self.cov_ridge_penalty = cov_ridge_penalty
@@ -101,7 +100,8 @@ class RandomFeatureGP(nn.Module):
 
         # Add jitter to diagonal to ensure positive-definiteness
         # Technique and 1e-3 value taken from GPyTorch
-        cov = phi @ self.covariance_matrix @ phi.mT + torch.eye(len(phi)) * 1e-3
+        jitter = torch.eye(len(phi), device=phi.device) * 1e-3
+        cov = phi @ self.covariance_matrix @ phi.mT + jitter
     
         if diag_only:
             # We know the args are valid and we don't want the performance hit of checking
@@ -137,7 +137,9 @@ class RandomFeatureGP(nn.Module):
 
         # Check if we need to initialize first
         if self.precision_matrix is None:
-            self.precision_matrix = torch.eye(self.num_features) * self.cov_ridge_penalty
+            device = self.feature_bias.device
+            r = self.cov_ridge_penalty
+            self.precision_matrix = torch.eye(self.num_features, device=device) * r
         
         if self.cov_momentum == 1.0:
             self.precision_matrix += batch_prec_matrix
